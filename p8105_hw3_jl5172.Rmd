@@ -1,0 +1,95 @@
+---
+title: "P8105_hw3_jl5172"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load package and data cleaning
+```{r}
+library(tidyverse)
+library(p8105.datasets)
+data("brfss_smart2010")
+brfss<-janitor::clean_names(brfss_smart2010) #clean names
+brfss<-rename(brfss,state=locationabbr,location=locationdesc) # use appropriate variable names
+brfss<-filter(brfss,topic == "Overall Health") # fiocusing on Overall Health
+brfss<-filter(brfss,response=="Excellent"|response=="Very good"|response=="Good"|response=="Fair"|response=="Poor") #Keep responses required
+mutate(brfss,response=as.factor(brfss$response)) 
+brfss$response<-fct_relevel(brfss$response,"Excellent","Very good","Good","Fair","Poor") # organize response as facctors in required ordering
+
+```
+
+In 2002, which states were observed at 7 locations?
+```{r}
+brfss %>% 
+  filter(year=="2002") %>%   #filter by year 2002
+  distinct(state,location) %>%  # distinct by state and location
+  count(state) %>%  # count the number of observations for each states
+  filter(n==7)  # looking for states which have been observed for 7 locations
+```
+We can see that CT,FL and NC were observed at 7 location in 2002.
+
+Make a “spaghetti plot” that shows the number of locations in each state from 2002 to 2010.
+
+```{r}
+brfss %>% 
+  group_by(state,year) %>%  # group by state and year
+  distinct(location) %>%   #distinct by locations
+  count(state) %>%  #count how many locations in each state were observed in each year
+  ggplot(aes(x = year, y = n)) +  #use ggplot to plot spaghetti
+    geom_line(aes(color = state))+  # color each line by state 
+  labs(
+    title = "Number Of Locations in Each States 2002-2010",
+    x = "Year",
+    y = "Number of Locations",
+    caption = "Data from the p8105.datasets package"
+  ) +
+  viridis::scale_color_viridis(
+    name = "", 
+    discrete = TRUE)+
+  theme(legend.position = "right")
+```
+
+
+
+Make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State.
+
+```{r}
+brfss %>% 
+  filter(year=="2002"|year=="2006"|year=="2010",state=="NY",response=="Excellent") %>% 
+  group_by(year) %>% 
+  summarize(
+          mean_proportion_excellent_NY =round(mean(data_value)/100,3),
+          sd_excellent_response=round(sd(data_value),3)) %>% 
+  View()
+```
+We can see from the table that...
+
+
+
+For each year and state, compute the average proportion in each response category (taking the average across locations in a state). Make a five-panel plot that shows, for each response category separately, the distribution of these state-level averages over time.
+```{r}
+brfss %>% 
+  spread(key= response, value = data_value) %>% 
+  janitor::clean_names() %>% 
+  group_by(state,year) %>% 
+  summarize(excellent_mean=mean(excellent,na.rm = T),
+            verygood_mean=mean(very_good,na.rm = T),
+            good_mean=mean(good,na.rm=T),
+            fair_mean=mean(fair,na.rm=T),
+            poor_mean=mean(poor,na.rm=T)
+            ) %>% 
+ gather(key=response_variable,value=mean_value,excellent_mean:poor_mean) %>% 
+  ggplot(aes(x=year,y=mean_value,color=state))+
+  geom_line()+
+  facet_grid(~response_variable)+
+  labs(
+    title = "Average Proportion In Each Response Category",
+    x = "Mean Proportion",
+    y = "Year",
+    caption = "Data from the p8105.datasets package"
+  )
+```
+
