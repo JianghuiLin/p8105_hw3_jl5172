@@ -93,3 +93,91 @@ brfss %>%
   )
 ```
 
+
+
+Problem 2
+Clean data Use suitable variable names.
+```{r}
+cart<-janitor::clean_names(instacart)
+
+```
+write a short description of the dataset, noting the size and structure of the data, describing some key variables, and giving illstrative examples of observations.
+
+Exploration of the dataset. 
+```{r}
+cart %>% 
+  distinct(product_id) %>% 
+  nrow()  # There are 39123 products
+
+cart %>% 
+  distinct(order_id) %>% 
+  nrow()    #There are 131209 orders.
+
+cart %>% 
+  distinct(department) %>% 
+  nrow()  # There are 21 departmets.
+
+```
+According to my basic analysis, there are 39123 distinct products being ordered, 131209 orders have been placed and 21 departments.The previous column name(order_dow) has been changed to order_day(which day of the week), 0 represent Sunday ,1 represents Monday,etc...
+
+
+
+How many aisles are there? 
+```{r}
+cart %>% 
+  distinct(aisle_id) %>% 
+  nrow()
+```
+We can see that their are 134 distinct id in the column aisle_id thus there are 134 aiseles there.
+
+
+
+
+which aisles are the most items ordered from?
+```{r}
+aisles_by_norder<-cart %>% 
+  group_by(aisle_id) %>% 
+  summarise(most_order_aisle=n()) %>% # use n() to summarize how many  times does each aisle_id appear.
+  arrange(desc(most_order_aisle)) %>%  #arrange them in descending order
+  as.tibble() 
+  
+famous_aisles<-aisles_by_norder$aisle_id[1:5] # famous aisle would appear on top of most_order_aisle.
+```
+We can see that the most famous aisles #83 with 150609 items ordered from that aisle.The top 5 famous aisles are #83,#24,#123,#120 and#21 respectively.
+
+
+Make a plot that shows the number of items ordered in each aisle. Order aisles sensibly, and organize your plot so others can read it.
+```{r}
+cart %>% 
+  group_by(aisle_id) %>% 
+  summarize(number_items_aisle = n()) %>% 
+  arrange(desc(number_items_aisle)) %>% 
+  ggplot(aes(x = reorder(aisle_id, -number_items_aisle), y = number_items_aisle, fill = aisle_id)) +
+  geom_col()
+```
+
+Make a table showing the most popular item in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”.
+```{r}
+cart %>% 
+  filter(aisle=="baking ingredients"|aisle=="dog food care"|aisle=="packaged vegetables fruits") %>%  #filter only these three aisles out
+  group_by(aisle,product_name) %>% # pre-group based on aisle and product name
+  summarise(n=n()) %>% # summarize number of order per product
+  top_n(1,n) %>%  #return 1 row per group, order = 'n' column
+  as.tibble() # form a table
+```
+
+
+Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+```{r}
+cart %>% 
+  filter(product_name=="Pink Lady Apples"|product_name=="Coffee Ice Cream") %>% 
+  select(product_name,order_hour_of_day,order_dow) %>% 
+  group_by(product_name,order_dow) %>% 
+  summarise(mean_time_order=mean(order_hour_of_day)) %>% 
+  #spread(key=order_dow,value=mean_time_order) %>% 
+  View()
+ 
+  
+  
+```
+
