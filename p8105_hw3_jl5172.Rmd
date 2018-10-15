@@ -4,6 +4,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -116,8 +117,7 @@ cart %>%
   nrow()  # There are 21 departmets.
 
 ```
-According to my basic analysis, there are 39123 distinct products being ordered, 131209 orders have been placed and 21 departments.The column 'order_dow' has been changed to order_day(which day of the week), 0 represent Sunday ,1 represents Monday,etc...
-
+According to my basic analysis, there are 39123 distinct products being ordered, 131209 orders have been placed and 21 departments.The column 'order_dow' has been changed to order_day(which day of the week), 0 represent Sunday ,1 represents Monday,etc...In the column reordered,the corresponding value is 1 if this product has been ordered by this user in the past,0 otherwise.The column add_to_cart_order means order in which each product was added to cart.Key variables are order_id, product_id, reordered, user_id, order_number as they are some essential information for us to observe the shopping behaviors of the users in Instacart.
 
 How many aisles are there? 
 ```{r}
@@ -133,25 +133,27 @@ We can see that their are 134 distinct id in the column aisle_id thus there are 
 which aisles are the most items ordered from?
 ```{r}
 aisles_by_norder<-cart %>% 
-  group_by(aisle_id) %>% 
+  group_by(aisle) %>% 
   summarise(most_order_aisle=n()) %>% # use n() to summarize how many  times does each aisle_id appear.
   arrange(desc(most_order_aisle)) %>%  #arrange them in descending order
   as.tibble() 
   
-famous_aisles<-aisles_by_norder$aisle_id[1:5] # famous aisle would appear on top of most_order_aisle.
+famous_aisles<-aisles_by_norder$aisle[1:5] # famous aisle would appear on top of most_order_aisle.
+famous_aisles
 ```
-We can see that the most famous aisles #83 with 150609 items ordered from that aisle.The top 5 famous aisles are #83,#24,#123,#120 and#21 respectively.
+We can see that the most famous aisle is "fresh vegetables" with 150609 items ordered from that aisle.The top 5 famous aisles are"fresh fruits","packaged vegetables fruits","yogurt" and "packaged cheese".
 
 
 Make a plot that shows the number of items ordered in each aisle. Order aisles sensibly, and organize your plot so others can read it.
 ```{r}
 cart %>% 
-  group_by(aisle_id) %>% 
+  group_by(aisle) %>% 
   summarize(number_items_aisle = n()) %>% 
   arrange(desc(number_items_aisle)) %>% 
-  ggplot(aes(x = reorder(aisle_id, -number_items_aisle), y = number_items_aisle, fill = aisle_id)) +
-  geom_point()+
-  theme(text = element_text(size = 8), plot.title = element_text(hjust = 0.5), legend.position = "hide", axis.text.x = element_text(angle = 90, hjust = 1))+
+  ggplot(aes(x = reorder(aisle, -number_items_aisle), y = number_items_aisle, fill = aisle)) +
+  geom_bar(stat="identity")+
+  coord_flip()+
+  theme(text = element_text(size = 6), plot.title = element_text(hjust = 0.5), legend.position = "hide", title = element_text(size = 10,face='bold'))+
   labs(title="Number of Items Ordered in Each Aisle",x="Aisle",y="Number of Items",caption = "Data from p8105.datasets package")
 ```
 
@@ -183,7 +185,7 @@ colnames(apple_coffee)<-c("Product Name","Sunday","Monday","Tuesday","Wednesday"
 
 
 
-Problem 3
+#Problem 3
 The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and indicating the extent to which missing data is an issue. Then, do or answer the following (commenting on the results of each):
 ```{r}
 ny<-janitor::clean_names(ny_noaa)
@@ -217,7 +219,7 @@ ny %>%
   top_n(5)
   
 ```
-For snowfall,the most commonly observed value is 0mm because for most of the day, there si no snowfall in New York. 25mm(2nd),13mm(3rd) and 51mm(4th) are also observed frequently.
+For snowfall,the most commonly observed value is 0mm because for most of the day, there is no snowfall in New York. 25mm(2nd),13mm(3rd) and 51mm(4th) are also observed frequently.
 
 
 Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
@@ -250,6 +252,7 @@ ny %>%
   geom_hex()+labs(title="Hexplot of Maximum Temperature",x="Minimum Temperature/°C",y="Maximum Temperature/°C",caption = "Data from the ny_noaa package")
   
 ```
+We can see from the hexplot that maximum temperature of a day are generally proprotional with minimum temperatures.The most frequent range of minimum temperatures lied between -15°C and 20°C. The most frequent range of maximum temperatures lied between -5°C and 30°C.
 
 Make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
 ```{r}
@@ -261,6 +264,6 @@ ny %>%
        caption = "Data from the ny_noaa package")
   
 ```
-
+In this density plot, each line represent the snowfall distribution for that year.We can see that the most frequent snowfall(mm) is about 0-30mm for each year.
 
 
