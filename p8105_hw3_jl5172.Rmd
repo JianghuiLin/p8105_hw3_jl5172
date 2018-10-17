@@ -1,6 +1,7 @@
 ---
 title: "P8105_hw3_jl5172"
-output: html_document
+author:"Jianghui_Lin"
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
